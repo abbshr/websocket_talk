@@ -11,22 +11,22 @@ module.exports = function decodeFrame(frame) {
 		Opcode = frame[counter++] & opcode_offset,
 		MASK = frame[counter] >> mask_offset,
 		Payload_len = frame[counter++] & payload_len_offset;
-
+console.log(Payload_len);
 	Payload_len === 126 && 
 	(Payload_len = 
-		frame[counter] << 8 + 
+		(frame[counter] << 8) + 
 		frame[++counter]) && 
 	counter++;
-	
+console.log(Payload_len);	
 	Payload_len === 127 && 
 	(Payload_len = 
-		frame[counter] << 56 + 
-		frame[++counter] << 48 +
-		frame[++counter] << 40 + 
-		frame[++counter] << 32 + 
-		frame[++counter] << 24 + 
-		frame[++counter] << 16 + 
-		frame[++counter] << 8 +
+		(frame[counter] << 56) + 
+		(frame[++counter] << 48) +
+		(frame[++counter] << 40) + 
+		(frame[++counter] << 32) + 
+		(frame[++counter] << 24) + 
+		(frame[++counter] << 16) + 
+		(frame[++counter] << 8) +
 		frame[++counter]) && 
 	counter++;
 
@@ -53,6 +53,6 @@ module.exports = function decodeFrame(frame) {
 		Opcode: Opcode,
 		MASK: MASK,
 		Payload_len: Payload_len,
-		Payload_data: frame.slice(counter)
+		Payload_data: frame.slice(counter, Payload_len)
 	}
 };

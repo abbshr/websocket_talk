@@ -27,19 +27,21 @@ function hand_shake(req, socket){
         'Sec-WebSocket-Accept: ' + key
     ];
     resHeaders = resHeaders.concat('', '').join('\r\n');
-    socket.on('data', send_recive);
+    socket.on('data', send_recive(socket));
     socket.write(resHeaders);
 }
 
-function send_recive(data){
-    var readable_data = decodeFrame(data);
-    var response = encodeFrame({
-        FIN: 1,
-        Opcode: 1,
-        Payload_data: 'Server: u just said to me ' + readable_data['Payload_data'].toString()
-    });
-    console.log(readable_data['Payload_data'].toString());
-    socket.write(response);
+function send_recive(socket){
+    return function (data) {
+        var readable_data = decodeFrame(data);
+        var response = encodeFrame({
+            FIN: 1,
+            Opcode: 1,
+            Payload_data: 'Server: u just said to me ' + readable_data['Payload_data'].toString()
+        });
+        console.log(readable_data);
+        socket.write(response);
+    }
 }
 
 var server = http.createServer(callback).listen(process.argv[2] || 3000);
