@@ -1,5 +1,7 @@
 
 module.exports = function decodeFrame(frame) {
+	if (frame.length < 2) return null;
+	
 	var counter = 0;
 	
 	var fin_offset = 7,
@@ -11,48 +13,37 @@ module.exports = function decodeFrame(frame) {
 		Opcode = frame[counter++] & opcode_offset,
 		MASK = frame[counter] >> mask_offset,
 		Payload_len = frame[counter++] & payload_len_offset;
-console.log(Payload_len);
+
 	Payload_len === 126 && 
-	(Payload_len = 
-		(frame[counter] << 8) + 
-		frame[++counter]) && 
-	counter++;
-console.log(Payload_len);	
+	(Payload_len = frame.readUInt16BE(counter)) && 
+	(counter += 2);
+
 	Payload_len === 127 && 
-	(Payload_len = 
-		(frame[counter] << 56) + 
-		(frame[++counter] << 48) +
-		(frame[++counter] << 40) + 
-		(frame[++counter] << 32) + 
-		(frame[++counter] << 24) + 
-		(frame[++counter] << 16) + 
-		(frame[++counter] << 8) +
-		frame[++counter]) && 
-	counter++;
-
-	var Payload_data = [];
-
+	(Payload_len = frame.readUInt32BE(counter + 4)) && 
+	(counter += 8);
+	
+	var buffer = new Buffer(Payload_len);
 	if (MASK) {
-		var Masking_key = [];
+		var Masking_key = frame.slice(counter, counter + 4);
 
-		Masking_key.push(
-			frame[counter++], 
-			frame[counter++], 
-			frame[counter++], 
-			frame[counter++]
-		);
+		counter += 4;
 
 		for (var i = 0; i < Payload_len; i++) {
 			var j = i % 4;
-			frame[counter + i] ^= Masking_key[j];
+			buffer[i] = frame[counter + i] ^ Masking_key[j];
 		}
 	}
+
+	if (frame.length < counter + Payload_len) return undefined;
+	
+	frame = frame.slice(counter + Payload_len);
 
 	return {
 		FIN: FIN,
 		Opcode: Opcode,
 		MASK: MASK,
 		Payload_len: Payload_len,
-		Payload_data: frame.slice(counter, Payload_len)
+		Payload_data: buffer, 
+		frame: frame
 	}
 };

@@ -19,10 +19,7 @@ module.exports = function encodeFrame(frame) {
 	else
 		preBytes.push(
 			(frame['MASK'] << 7) + 127,
-			(dataLength & 0xFF00000000000000) >> 56,
-			(dataLength & 0xFF000000000000) >> 48,
-			(dataLength & 0xFF0000000000) >> 40,
-			(dataLength & 0xFF00000000) >> 32,
+			0, 0, 0, 0,
 			(dataLength & 0xFF000000) >> 24,
 			(dataLength & 0xFF0000) >> 16,
 			(dataLength & 0xFF00) >> 8,
